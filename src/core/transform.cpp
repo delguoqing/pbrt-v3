@@ -237,14 +237,28 @@ Transform LookAt(const Point3f &pos, const Point3f &look, const Vector3f &up) {
 
 Bounds3f Transform::operator()(const Bounds3f &b) const {
     const Transform &M = *this;
-    Bounds3f ret(M(Point3f(b.pMin.x, b.pMin.y, b.pMin.z)));
-    ret = Union(ret, M(Point3f(b.pMax.x, b.pMin.y, b.pMin.z)));
-    ret = Union(ret, M(Point3f(b.pMin.x, b.pMax.y, b.pMin.z)));
-    ret = Union(ret, M(Point3f(b.pMin.x, b.pMin.y, b.pMax.z)));
-    ret = Union(ret, M(Point3f(b.pMin.x, b.pMax.y, b.pMax.z)));
-    ret = Union(ret, M(Point3f(b.pMax.x, b.pMax.y, b.pMin.z)));
-    ret = Union(ret, M(Point3f(b.pMax.x, b.pMin.y, b.pMax.z)));
-    ret = Union(ret, M(Point3f(b.pMax.x, b.pMax.y, b.pMax.z)));
+    const Matrix4x4 &mat = M.GetMatrix();
+
+	Point3f xa(mat.m[0][0] * b.pMin.x, mat.m[1][0] * b.pMin.x,
+               mat.m[2][0] * b.pMin.x);
+    Point3f ya(mat.m[0][1] * b.pMin.y, mat.m[1][1] * b.pMin.y,
+               mat.m[2][1] * b.pMin.y);
+    Point3f za(mat.m[0][2] * b.pMin.z, mat.m[1][2] * b.pMin.z,
+                mat.m[2][2] * b.pMin.z);
+
+	Point3f xb(mat.m[0][0] * b.pMax.x, mat.m[1][0] * b.pMax.x,
+               mat.m[2][0] * b.pMax.x);
+    Point3f yb(mat.m[0][1] * b.pMax.y, mat.m[1][1] * b.pMax.y,
+               mat.m[2][1] * b.pMax.y);
+    Point3f zb(mat.m[0][2] * b.pMax.z, mat.m[1][2] * b.pMax.z,
+               mat.m[2][2] * b.pMax.z);
+
+	Point3f translation(mat.m[0][3], mat.m[1][3], mat.m[2][3]);
+
+	Bounds3f ret(
+		Min(xa, xb) + Min(ya, yb) + Min(za, zb) + translation,
+		Max(xa, xb) + Max(xb, yb) + Max(za, zb) + translation
+	);
     return ret;
 }
 
