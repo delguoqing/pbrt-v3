@@ -40,17 +40,18 @@
 
 // shapes/sphere.h*
 #include "shape.h"
+#include "quadric.h"
 
 namespace pbrt {
 
 // Sphere Declarations
-class Sphere : public Shape {
+class Sphere : public Quadric {
   public:
     // Sphere Public Methods
     Sphere(const Transform *ObjectToWorld, const Transform *WorldToObject,
            bool reverseOrientation, Float radius, Float zMin, Float zMax,
            Float phiMax)
-        : Shape(ObjectToWorld, WorldToObject, reverseOrientation),
+        : Quadric(ObjectToWorld, WorldToObject, reverseOrientation),
           radius(radius),
           zMin(Clamp(std::min(zMin, zMax), -radius, radius)),
           zMax(Clamp(std::max(zMin, zMax), -radius, radius)),

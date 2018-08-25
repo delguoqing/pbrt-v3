@@ -55,6 +55,8 @@ bool Sphere::Intersect(const Ray &r, Float *tHit, SurfaceInteraction *isect,
     Vector3f oErr, dErr;
     Ray ray = (*WorldToObject)(r, &oErr, &dErr);
 
+
+
     // Compute quadratic sphere coefficients
 
     // Initialize _EFloat_ ray coordinate values
