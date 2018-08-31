@@ -51,35 +51,24 @@ bool Sphere::Intersect(const Ray &r, Float *tHit, SurfaceInteraction *isect,
     ProfilePhase p(Prof::ShapeIntersect);
     Float phi;
     Point3f pHit;
-    // Transform _Ray_ to object space
-    Vector3f oErr, dErr;
-    Ray ray = (*WorldToObject)(r, &oErr, &dErr);
-
-
-
-    // Compute quadratic sphere coefficients
-
-    // Initialize _EFloat_ ray coordinate values
-    EFloat ox(ray.o.x, oErr.x), oy(ray.o.y, oErr.y), oz(ray.o.z, oErr.z);
-    EFloat dx(ray.d.x, dErr.x), dy(ray.d.y, dErr.y), dz(ray.d.z, dErr.z);
-    EFloat a = dx * dx + dy * dy + dz * dz;
-    EFloat b = 2 * (dx * ox + dy * oy + dz * oz);
-    EFloat c = ox * ox + oy * oy + oz * oz - EFloat(radius) * EFloat(radius);
 
     // Solve quadratic equation for _t_ values
     EFloat t0, t1;
-    if (!Quadratic(a, b, c, &t0, &t1)) return false;
+    if (!PreIntersect(r, &t0, &t1)) return false;
 
     // Check quadric shape _t0_ and _t1_ for nearest intersection
-    if (t0.UpperBound() > ray.tMax || t1.LowerBound() <= 0) return false;
+    if (t0.UpperBound() > r.tMax || t1.LowerBound() <= 0) return false;
     EFloat tShapeHit = t0;
     if (tShapeHit.LowerBound() <= 0) {
         tShapeHit = t1;
-        if (tShapeHit.UpperBound() > ray.tMax) return false;
+        if (tShapeHit.UpperBound() > r.tMax) return false;
     }
 
     // Compute sphere hit position and $\phi$
-    pHit = ray((Float)tShapeHit);
+    pHit = r((Float)tShapeHit);
+
+	// Object space hit position
+    pHit = (*WorldToObject)(pHit);
 
     // Refine sphere intersection point
     pHit *= radius / Distance(pHit, Point3f(0, 0, 0));
@@ -91,10 +80,13 @@ bool Sphere::Intersect(const Ray &r, Float *tHit, SurfaceInteraction *isect,
     if ((zMin > -radius && pHit.z < zMin) || (zMax < radius && pHit.z > zMax) ||
         phi > phiMax) {
         if (tShapeHit == t1) return false;
-        if (t1.UpperBound() > ray.tMax) return false;
+        if (t1.UpperBound() > r.tMax) return false;
         tShapeHit = t1;
         // Compute sphere hit position and $\phi$
-        pHit = ray((Float)tShapeHit);
+        pHit = r((Float)tShapeHit);
+
+		// Object space hit position
+        pHit = (*WorldToObject)(pHit);
 
         // Refine sphere intersection point
         pHit *= radius / Distance(pHit, Point3f(0, 0, 0));
@@ -149,8 +141,9 @@ bool Sphere::Intersect(const Ray &r, Float *tHit, SurfaceInteraction *isect,
 
     // Initialize _SurfaceInteraction_ from parametric information
     *isect = (*ObjectToWorld)(SurfaceInteraction(pHit, pError, Point2f(u, v),
-                                                 -ray.d, dpdu, dpdv, dndu, dndv,
-                                                 ray.time, this));
+                                                 -r.d, dpdu, dpdv, dndu, dndv,
+                                                 r.time, this));
+    isect->wo = -r.d;
 
     // Update _tHit_ for quadric intersection
     *tHit = (Float)tShapeHit;

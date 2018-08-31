@@ -8,10 +8,8 @@ namespace pbrt {
 class Quadric: public Shape {
   public:
     Quadric(const Transform *ObjectToWorld, const Transform *WorldToObject,
-            bool reverseOrientation);
-    virtual ~Quadric();
+            bool reverseOrientation, const Matrix4x4 &coeff);
     bool PreIntersect(const Ray &ray, EFloat *t0, EFloat *t1) const;
-    virtual void InitCoefficient(Matrix4x4 &m) = 0;
   private:
     EFloat A, B, C, D, E, F, G, H, I, J;
 };

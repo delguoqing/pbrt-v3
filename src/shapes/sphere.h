@@ -51,7 +51,10 @@ class Sphere : public Quadric {
     Sphere(const Transform *ObjectToWorld, const Transform *WorldToObject,
            bool reverseOrientation, Float radius, Float zMin, Float zMax,
            Float phiMax)
-        : Quadric(ObjectToWorld, WorldToObject, reverseOrientation),
+        : Quadric(ObjectToWorld, WorldToObject, reverseOrientation, Matrix4x4(1, 0, 0, 0, 
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, - radius * radius)),
           radius(radius),
           zMin(Clamp(std::min(zMin, zMax), -radius, radius)),
           zMax(Clamp(std::max(zMin, zMax), -radius, radius)),
@@ -68,7 +71,6 @@ class Sphere : public Quadric {
                        Float *pdf) const;
     Float Pdf(const Interaction &ref, const Vector3f &wi) const;
     Float SolidAngle(const Point3f &p, int nSamples) const;
-
   private:
     // Sphere Private Data
     const Float radius;
